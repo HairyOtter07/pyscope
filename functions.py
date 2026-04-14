@@ -1,3 +1,5 @@
+import pickle
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -37,3 +39,8 @@ def start_gradescope_session(email: str, password: str) -> requests.Session | No
 def is_session_valid(session: requests.Session) -> bool:
     r = session.get(_endpoint("/login"))
     return r.status_code == 401
+
+
+def save_session(session: requests.Session) -> None:
+    with open("session.pkl", "wb") as f:
+        pickle.dump(session, f)
