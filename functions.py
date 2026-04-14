@@ -32,3 +32,8 @@ def start_gradescope_session(email: str, password: str) -> requests.Session | No
     }
     s.post(_endpoint("/login"), data=loginData)
     return s
+
+
+def is_session_valid(session: requests.Session) -> bool:
+    r = session.get(_endpoint("/login"))
+    return r.status_code == 401
