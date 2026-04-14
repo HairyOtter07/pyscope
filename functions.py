@@ -8,7 +8,7 @@ def _endpoint(e):
     return BASE + e
 
 
-def start_gradescope_session(email: str, password: str) -> requests.Session:
+def start_gradescope_session(email: str, password: str) -> requests.Session | None:
     s = requests.Session()
     s.headers.update(
         {
@@ -20,10 +20,10 @@ def start_gradescope_session(email: str, password: str) -> requests.Session:
     loginPage = BeautifulSoup(r.content, features="html.parser")
     authForm = loginPage.find("form")
     if authForm is None:
-        return s
+        return None
     authTokenInput = authForm.find("input", attrs={"name": "authenticity_token"})
     if authTokenInput is None:
-        return s
+        return None
     authToken = str(authTokenInput["value"])
     loginData = {
         "authenticity_token": authToken,
