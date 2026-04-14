@@ -55,3 +55,15 @@ def load_session() -> requests.Session | None:
         if not isinstance(s, requests.Session):
             raise TypeError(f"Expected requests.Session, but got {type(s).__name__}")
         return s
+
+
+def get_course_ids(session: requests.Session) -> list[str]:
+    r = session.get(_endpoint("/account"))
+    dashboard = BeautifulSoup(r.content, features="html.parser")
+    courseList = dashboard.find("div", class_="courseList--coursesForTerm")
+    if courseList is None:
+        return []
+    linkTags = courseList.find_all("a")
+    courseLinks = [str(linkTag["href"]) for linkTag in linkTags]
+    courseIds = [link.split("/")[-1] for link in courseLinks]
+    return courseIds
