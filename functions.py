@@ -1,4 +1,5 @@
 import pickle
+from pathlib import Path
 
 import requests
 from bs4 import BeautifulSoup
@@ -44,3 +45,13 @@ def is_session_valid(session: requests.Session) -> bool:
 def save_session(session: requests.Session) -> None:
     with open("session.pkl", "wb") as f:
         pickle.dump(session, f)
+
+
+def load_session() -> requests.Session | None:
+    if not Path("session.pkl").exists():
+        return None
+    with open("session.pkl", "rb") as f:
+        s = pickle.load(f)
+        if not isinstance(s, requests.Session):
+            raise TypeError(f"Expected requests.Session, but got {type(s).__name__}")
+        return s
