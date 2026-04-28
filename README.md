@@ -20,6 +20,7 @@ Currently very early in development, so don't expect much.
   - [ ] template pdf
   - [ ] existing submission link
   - [ ] submission lateness
+- [ ] get student name (account info)
 - [ ] direct submission button
 - [ ] get past terms courses
 - [ ] UI!
