@@ -1,40 +1,96 @@
-import os
+from datetime import datetime
 
-from dotenv import load_dotenv
+from bs4 import Tag
+from fastapi import FastAPI
+from pydantic import BaseModel
 
-from functions import (
-    get_course,
-    get_course_ids,
-    is_session_valid,
-    load_session,
-    save_session,
-    start_gradescope_session,
-)
+GRADESCOPE_DATETIME_FSTRING = "%Y-%m-%d %H:%M:%S %z"
 
-load_dotenv()
+app = FastAPI()
 
-s = load_session()
-if s is None:
-    print("No saved session found, starting new session...")
-    s = start_gradescope_session(os.environ["USERNAME"], os.environ["PASSWORD"])
-elif not is_session_valid(s):
-    print("Session invalid, starting new session...")
-    s = start_gradescope_session(os.environ["USERNAME"], os.environ["PASSWORD"])
 
-if s is None:
-    exit()
+class Assignment(BaseModel):
+    title: str
+    submission_status: str
+    due_date: datetime | None
+    late_due_date: datetime | None
 
-courseIds = get_course_ids(s)
+    @classmethod
+    def from_tag(cls, tag: Tag):
+        title = ""
+        if th := tag.find("th"):
+            title = th.text
 
-for id in courseIds:
-    c = get_course(s, id)
-    print(f"{c.subtitle} ({c.id})")
-    print("-" * 100)
-    print(f"Instructors: {' | '.join(c.instructors)}")
-    for a in c.assignments:
-        print(
-            f"{a.title} ({a.submissionStatus}): {('Due ' + a.dueDate.strftime('%A, %B %d, %Y at %I:%M %p')) if a.dueDate else 'No Due Date'}, {'Late Due Date: ' + (a.lateDueDate.strftime('%A, %B %d, %Y at %I:%M %p') if a.lateDueDate else 'None')}"
+        submission_status = ""
+        if submission_status_tag := tag.find("td", class_="submissionStatus"):
+            status_classes = submission_status_tag["class"]
+            if (
+                "submissionStatus-warning" in status_classes
+                or "submissionStatus-neutral" in status_classes
+                or "submissionStatus-complete" in status_classes
+            ):
+                if status_text := submission_status_tag.find(
+                    "div", class_="submissionStatus--text"
+                ):
+                    submission_status = status_text.text
+            else:
+                submission_status = "Graded: "
+                if score_text := submission_status_tag.find(
+                    "div", class_="submissionStatus--score"
+                ):
+                    submission_status += score_text.text
+
+        due_date = None
+        late_due_date = None
+        if time_chart_div := tag.find("div", class_="submissionTimeChart"):
+            due_date_tags = time_chart_div.find_all(
+                "time", class_="submissionTimeChart--dueDate"
+            )
+            if len(due_date_tags) > 0:
+                due_date = datetime.strptime(
+                    str(due_date_tags[0]["datetime"]), GRADESCOPE_DATETIME_FSTRING
+                )
+            if len(due_date_tags) > 1:
+                late_due_date = datetime.strptime(
+                    str(due_date_tags[1]["datetime"]), GRADESCOPE_DATETIME_FSTRING
+                )
+
+        return Assignment(
+            title=title,
+            submission_status=submission_status,
+            due_date=due_date,
+            late_due_date=late_due_date,
         )
-    print()
 
-save_session(s)
+
+class Course(BaseModel):
+    id: str
+    title: str
+    subtitle: str
+    instructors: list[str]
+    assignments: list[Assignment]
+
+
+class Login(BaseModel):
+    email: str
+    password: str
+
+
+@app.get("/")
+def root():
+    return {"message": "Hello World"}
+
+
+@app.post("/api/login/")
+def login(credentials: Login):
+    pass
+
+
+@app.get("/api/courses/")
+def get_courses():
+    pass
+
+
+@app.get("/api/courses/{course_id}")
+def get_course(course_id: str):
+    pass
