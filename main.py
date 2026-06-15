@@ -186,7 +186,7 @@ def login(credentials: Login):
 
 
 @app.get("/api/courses/")
-def get_courses(gs_cookie_jar: Annotated[str, Header()]):
+def get_course_ids(gs_cookie_jar: Annotated[str, Header()]):
     s = SessionManager.from_cookies(gs_cookie_jar)
     if s is None:
         raise HTTPException(status_code=401, detail="Session invalid")
