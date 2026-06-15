@@ -1,11 +1,14 @@
+import base64
+import json
 import re
 from datetime import datetime
 
+import requests
 from bs4 import BeautifulSoup, Tag
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-GRADESCOPE_DATETIME_FSTRING = "%Y-%m-%d %H:%M:%S %z"
+GS_DATETIME_FSTRING = "%Y-%m-%d %H:%M:%S %z"
 
 app = FastAPI()
 
@@ -49,14 +52,14 @@ class Assignment(BaseModel):
             )
             if len(due_date_tags) > 0:
                 due_date = datetime.strptime(
-                    str(due_date_tags[0]["datetime"]), GRADESCOPE_DATETIME_FSTRING
+                    str(due_date_tags[0]["datetime"]), GS_DATETIME_FSTRING
                 )
             if len(due_date_tags) > 1:
                 late_due_date = datetime.strptime(
-                    str(due_date_tags[1]["datetime"]), GRADESCOPE_DATETIME_FSTRING
+                    str(due_date_tags[1]["datetime"]), GS_DATETIME_FSTRING
                 )
 
-        return Assignment(
+        return cls(
             title=title,
             submission_status=submission_status,
             due_date=due_date,
@@ -74,31 +77,31 @@ class Course(BaseModel):
     @classmethod
     def from_page(cls, page: BeautifulSoup):
         id = ""
-        if idDiv := page.find("div", class_="courseHeader--courseID"):
-            if m := re.search(r"\d+", idDiv.text):
+        if id_div := page.find("div", class_="courseHeader--courseID"):
+            if m := re.search(r"\d+", id_div.text):
                 id = m[0]
 
         title = ""
-        if titleDiv := page.find("div", class_="sidebar--title"):
-            if titleLink := titleDiv.find("a"):
-                title = titleLink.text
+        if title_div := page.find("div", class_="sidebar--title"):
+            if title_link := title_div.find("a"):
+                title = title_link.text
 
         subtitle = ""
-        if subtitleDiv := page.find("div", class_="sidebar--subtitle"):
-            subtitle = subtitleDiv.text
+        if subtitle_div := page.find("div", class_="sidebar--subtitle"):
+            subtitle = subtitle_div.text
 
         instructors = []
-        for listItem in page.find_all("li", id=re.compile(r"sidebar-instructor-\d*")):
-            if nameDiv := listItem.find("div", class_="sidebar--menuItemLabel"):
-                instructors.append(nameDiv.text)
+        for list_item in page.find_all("li", id=re.compile(r"sidebar-instructor-\d*")):
+            if name_div := list_item.find("div", class_="sidebar--menuItemLabel"):
+                instructors.append(name_div.text)
 
         assignments = []
-        if assignmentsTable := page.find("table", id="assignments-student-table"):
-            if tableBody := assignmentsTable.find("tbody"):
-                for tag in tableBody.find_all("tr"):
+        if assignments_table := page.find("table", id="assignments-student-table"):
+            if table_body := assignments_table.find("tbody"):
+                for tag in table_body.find_all("tr"):
                     assignments.append(Assignment.from_tag(tag))
 
-        return Course(
+        return cls(
             id=id,
             title=title,
             subtitle=subtitle,
@@ -112,6 +115,62 @@ class Login(BaseModel):
     password: str
 
 
+class SessionManager:
+    session: requests.Session
+    GS_BASE_URL = "https://www.gradescope.com"
+
+    def __init__(self, session: requests.Session) -> None:
+        self.session = session
+
+    def encode_cookie_jar(self) -> str:
+        cookie_dict = self.session.cookies.get_dict()
+        return base64.b64encode(json.dumps(cookie_dict).encode()).decode()
+
+    @staticmethod
+    def get_gs_endpoint(endpoint: str) -> str:
+        return SessionManager.GS_BASE_URL + endpoint
+
+    @staticmethod
+    def is_valid_gs_session(session: requests.Session) -> bool:
+        r = session.get(SessionManager.get_gs_endpoint("/login"))
+        return r.status_code == 401
+
+    @classmethod
+    def from_credentials(cls, credentials: Login):
+        session = requests.Session()
+
+        success = False
+        login_get = session.get(cls.get_gs_endpoint("/login"))
+        login_page = BeautifulSoup(login_get.content, features="html.parser")
+        if auth_form := login_page.find("form"):
+            if auth_token_input := auth_form.find(
+                "input", attrs={"name": "authenticity_token"}
+            ):
+                auth_token = str(auth_token_input["value"])
+                login_data = {
+                    "authenticity_token": auth_token,
+                    "session[email]": credentials.email,
+                    "session[password]": credentials.password,
+                }
+                login_res = session.post(cls.get_gs_endpoint("/login"), data=login_data)
+                if "Course Dashboard" in login_res.text:
+                    success = True
+
+        return cls(session=session) if success else None
+
+    @classmethod
+    def from_cookies(cls, cookie_jar: str):
+        session = requests.Session()
+
+        cookie_dict = json.loads(base64.b64decode(cookie_jar).decode())
+        session.cookies.update(cookie_dict)
+        return (
+            cls(session=session)
+            if SessionManager.is_valid_gs_session(session)
+            else None
+        )
+
+
 @app.get("/")
 def root():
     return {"message": "Hello World"}
@@ -119,7 +178,10 @@ def root():
 
 @app.post("/api/login/")
 def login(credentials: Login):
-    pass
+    s = SessionManager.from_credentials(credentials)
+    if s is None:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return {"cookie_jar": s.encode_cookie_jar()}
 
 
 @app.get("/api/courses/")
