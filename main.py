@@ -204,5 +204,11 @@ def get_course_ids(gs_cookie_jar: Annotated[str, Header()]):
 
 
 @app.get("/api/courses/{course_id}")
-def get_course(course_id: str):
-    pass
+def get_course(course_id: str, gs_cookie_jar: Annotated[str, Header()]):
+    s = SessionManager.from_cookies(gs_cookie_jar)
+    if s is None:
+        raise HTTPException(status_code=401, detail="Session invalid")
+
+    r = s.session.get(s.get_gs_endpoint(f"/courses/{course_id}"))
+    course_page = BeautifulSoup(r.content, features="html.parser")
+    return Course.from_page(course_page)

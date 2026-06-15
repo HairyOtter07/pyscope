@@ -13,7 +13,7 @@ Currently very early in development, so don't expect much.
   - [x] title
   - [x] submission status
     - [ ] handle graded scores better
-  - [ ] dates
+  - [x] dates
     - [ ] release date
     - [x] due date
     - [x] late due date
@@ -24,3 +24,5 @@ Currently very early in development, so don't expect much.
 - [ ] direct submission button
 - [ ] get past terms courses
 - [ ] UI!
+  - [x] backend API
+  - [ ] actual frontend
