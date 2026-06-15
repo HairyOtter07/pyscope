@@ -1,6 +1,7 @@
+import re
 from datetime import datetime
 
-from bs4 import Tag
+from bs4 import BeautifulSoup, Tag
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -69,6 +70,41 @@ class Course(BaseModel):
     subtitle: str
     instructors: list[str]
     assignments: list[Assignment]
+
+    @classmethod
+    def from_page(cls, page: BeautifulSoup):
+        id = ""
+        if idDiv := page.find("div", class_="courseHeader--courseID"):
+            if m := re.search(r"\d+", idDiv.text):
+                id = m[0]
+
+        title = ""
+        if titleDiv := page.find("div", class_="sidebar--title"):
+            if titleLink := titleDiv.find("a"):
+                title = titleLink.text
+
+        subtitle = ""
+        if subtitleDiv := page.find("div", class_="sidebar--subtitle"):
+            subtitle = subtitleDiv.text
+
+        instructors = []
+        for listItem in page.find_all("li", id=re.compile(r"sidebar-instructor-\d*")):
+            if nameDiv := listItem.find("div", class_="sidebar--menuItemLabel"):
+                instructors.append(nameDiv.text)
+
+        assignments = []
+        if assignmentsTable := page.find("table", id="assignments-student-table"):
+            if tableBody := assignmentsTable.find("tbody"):
+                for tag in tableBody.find_all("tr"):
+                    assignments.append(Assignment.from_tag(tag))
+
+        return Course(
+            id=id,
+            title=title,
+            subtitle=subtitle,
+            instructors=instructors,
+            assignments=assignments,
+        )
 
 
 class Login(BaseModel):
