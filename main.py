@@ -2,10 +2,11 @@ import base64
 import json
 import re
 from datetime import datetime
+from typing import Annotated
 
 import requests
 from bs4 import BeautifulSoup, Tag
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
 
 GS_DATETIME_FSTRING = "%Y-%m-%d %H:%M:%S %z"
@@ -185,8 +186,21 @@ def login(credentials: Login):
 
 
 @app.get("/api/courses/")
-def get_courses():
-    pass
+def get_courses(gs_cookie_jar: Annotated[str, Header()]):
+    s = SessionManager.from_cookies(gs_cookie_jar)
+    if s is None:
+        raise HTTPException(status_code=401, detail="Session invalid")
+
+    r = s.session.get(s.get_gs_endpoint("/account"))
+    dashboard = BeautifulSoup(r.content, features="html.parser")
+    course_ids = []
+    if course_list := dashboard.find("div", class_="courseList--coursesForTerm"):
+        course_ids = [
+            str(link_tag["href"]).split("/")[-1]
+            for link_tag in course_list.find_all("a")
+        ]
+
+    return course_ids
 
 
 @app.get("/api/courses/{course_id}")
