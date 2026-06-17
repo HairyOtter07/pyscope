@@ -172,11 +172,6 @@ class SessionManager:
         )
 
 
-@app.get("/")
-def root():
-    return {"message": "Hello World"}
-
-
 @app.post("/api/login/")
 def login(credentials: Login):
     s = SessionManager.from_credentials(credentials)
