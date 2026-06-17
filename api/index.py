@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 GS_DATETIME_FSTRING = "%Y-%m-%d %H:%M:%S %z"
 
-app = FastAPI()
+app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
 
 
 class Assignment(BaseModel):
