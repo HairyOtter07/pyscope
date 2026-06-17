@@ -3,7 +3,7 @@
     "web": {
       "entrypoint": "app.vue",
       "routePrefix": "/",
-      "framework": "nuxt"
+      "framework": "nuxtjs"
     },
     "api": {
       "entrypoint": "api/index.py",
