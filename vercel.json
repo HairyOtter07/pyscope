@@ -1,0 +1,14 @@
+{
+  "experimentalServices": {
+    "web": {
+      "entrypoint": "app.vue",
+      "routePrefix": "/",
+      "framework": "nuxt"
+    },
+    "api": {
+      "entrypoint": "api/index.py",
+      "routePrefix": "/api",
+      "framework": "fastapi"
+    }
+  }
+}
