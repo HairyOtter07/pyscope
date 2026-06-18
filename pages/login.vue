@@ -40,7 +40,7 @@
                     </button>
                 </div>
             </form>
-            <div class="w-full text-green-300" v-if="successToken">
+            <div class="w-full text-green-300" v-if="success">
                 <p>Success! Redirecting...</p>
             </div>
             <div class="w-full text-red-300" v-if="errorMessage">
@@ -56,11 +56,11 @@ const email = ref("");
 const password = ref("");
 const loading = ref(false);
 const errorMessage = ref("");
-const successToken = ref("");
+const success = ref("");
 
 const login = async () => {
     loading.value = true;
-    successToken.value = "";
+    success.value = "";
     errorMessage.value = "";
 
     try {
@@ -73,12 +73,14 @@ const login = async () => {
         });
 
         if (response.cookie_jar) {
-            successToken.value = response.cookie_jar;
+            success.value = response.cookie_jar;
             const cookieJar = useCookie("gs_cookie_jar", {
                 maxAge: 60 * 60 * 24,
             });
             cookieJar.value = response.cookie_jar;
         }
+
+        await navigateTo("/");
     } catch (err) {
         errorMessage.value =
             err.data?.detail ||
