@@ -3,15 +3,15 @@
         class="flex flex-col w-full h-full min-h-screen bg-slate-900 text-white items-center"
     >
         <div
-            class="flex flex-col m-4 p-4 bg-slate-800 items-center justify-center border-white border rounded-md space-y-2"
+            class="flex flex-col m-4 p-4 bg-slate-800 items-center justify-center border-white border rounded-md gap-2"
         >
             <h1 class="text-xl">Log In</h1>
             <form
-                class="min-w-80 flex flex-col justify-center space-y-4"
+                class="min-w-80 flex flex-col justify-center gap-4"
                 @submit.prevent="login"
             >
-                <div class="flex flex-col justify-center space-y-2">
-                    <div class="flex flex-col justify-center space-y-1">
+                <div class="flex flex-col justify-center gap-2">
+                    <div class="flex flex-col justify-center gap-1">
                         <label class="text-lg" for="email">Email:</label>
                         <input
                             class="p-2 bg-slate-700 border border-slate-400 rounded-md"
@@ -20,7 +20,7 @@
                             v-model="email"
                         />
                     </div>
-                    <div class="flex flex-col justify-center space-y-1">
+                    <div class="flex flex-col justify-center gap-1">
                         <label class="text-lg" for="password">Password:</label>
                         <input
                             class="p-2 bg-slate-700 border border-slate-400 rounded-md"
