@@ -7,11 +7,22 @@ from typing import Annotated
 import requests
 from bs4 import BeautifulSoup, Tag
 from fastapi import FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 GS_DATETIME_FSTRING = "%Y-%m-%d %H:%M:%S %z"
 
 app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
+
+origins = ["http://localhost:3000"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class Assignment(BaseModel):
