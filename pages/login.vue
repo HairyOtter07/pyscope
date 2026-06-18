@@ -61,15 +61,15 @@ const email = ref("");
 const password = ref("");
 const loading = ref(false);
 const errorMessage = ref("");
-const success = ref("");
+const success = ref(false);
 const cookieJar = useCookie("gs_cookie_jar", { maxAge: 60 * 60 * 24 });
 if (cookieJar.value) {
-    await navigateTo("/dashboard");
+    await navigateTo("/dashboard", { external: true });
 }
 
 const login = async () => {
     loading.value = true;
-    success.value = "";
+    success.value = false;
     errorMessage.value = "";
 
     try {
@@ -82,9 +82,9 @@ const login = async () => {
         });
 
         if (response.cookie_jar) {
-            success.value = response.cookie_jar;
+            success.value = true;
             cookieJar.value = response.cookie_jar;
-            await navigateTo("/");
+            await navigateTo("/dashboard", { external: true });
         }
     } catch (err) {
         errorMessage.value =
