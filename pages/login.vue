@@ -50,6 +50,11 @@
     </div>
 </template>
 <script setup>
+useHead({
+    title: "Log In",
+});
+const config = useRuntimeConfig();
+
 import { ref } from "vue";
 
 const email = ref("");
@@ -57,6 +62,10 @@ const password = ref("");
 const loading = ref(false);
 const errorMessage = ref("");
 const success = ref("");
+const cookieJar = useCookie("gs_cookie_jar", { maxAge: 60 * 60 * 24 });
+if (cookieJar.value) {
+    await navigateTo("/dashboard");
+}
 
 const login = async () => {
     loading.value = true;
@@ -64,7 +73,7 @@ const login = async () => {
     errorMessage.value = "";
 
     try {
-        const response = await $fetch("http://127.0.0.1:8000/api/login", {
+        const response = await $fetch(`${config.public.apiBaseUrl}/api/login`, {
             method: "POST",
             body: {
                 email: email.value,
@@ -74,13 +83,9 @@ const login = async () => {
 
         if (response.cookie_jar) {
             success.value = response.cookie_jar;
-            const cookieJar = useCookie("gs_cookie_jar", {
-                maxAge: 60 * 60 * 24,
-            });
             cookieJar.value = response.cookie_jar;
+            await navigateTo("/");
         }
-
-        await navigateTo("/");
     } catch (err) {
         errorMessage.value =
             err.data?.detail ||
