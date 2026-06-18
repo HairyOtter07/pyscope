@@ -1,4 +1,4 @@
-<template>
-    <div></div>
-</template>
-<script setup lang="ts"></script>
+<template></template>
+<script setup>
+await navigateTo("/login", { external: true });
+</script>
