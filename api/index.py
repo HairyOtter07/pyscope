@@ -183,7 +183,7 @@ class SessionManager:
         )
 
 
-@app.post("/api/login/")
+@app.post("/api/login")
 def login(credentials: Login):
     s = SessionManager.from_credentials(credentials)
     if s is None:
@@ -191,7 +191,7 @@ def login(credentials: Login):
     return {"cookie_jar": s.encode_cookie_jar()}
 
 
-@app.get("/api/courses/")
+@app.get("/api/courses")
 def get_course_ids(gs_cookie_jar: Annotated[str, Header()]):
     s = SessionManager.from_cookies(gs_cookie_jar)
     if s is None:
