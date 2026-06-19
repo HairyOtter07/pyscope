@@ -72,7 +72,7 @@
                 >
                     <div
                         v-for="tab in filterTabs"
-                        class="py-2 px-4 rounded hover:cursor-pointer"
+                        class="py-1 px-4 rounded hover:cursor-pointer"
                         :class="
                             filterType === tab.id
                                 ? 'bg-slate-500 text-white'
