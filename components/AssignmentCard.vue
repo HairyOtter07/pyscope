@@ -11,14 +11,14 @@
             <p class="text-lg text-white">
                 {{
                     dueDate
-                        ? dayjs(dueDate).format(FORMAT_STRING)
+                        ? `Due ${dayjs(dueDate).format(FORMAT_STRING)}`
                         : "No Due Date"
                 }}
             </p>
             <p class="text-sm text-slate-200">
                 {{
                     lateDueDate
-                        ? dayjs(lateDueDate).format(FORMAT_STRING)
+                        ? `Late Due ${dayjs(lateDueDate).format(FORMAT_STRING)}`
                         : "No Late Due Date"
                 }}
             </p>
@@ -35,5 +35,5 @@ defineProps<{
     lateDueDate?: dayjs.Dayjs;
 }>();
 
-const FORMAT_STRING = "dddd, MMMM DD, YYYY [at] hh:mmA";
+const FORMAT_STRING = "MM/DD/YYYY [at] hh:mmA";
 </script>
