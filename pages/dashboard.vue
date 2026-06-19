@@ -16,7 +16,7 @@
                 class="flex flex-col w-full h-full items-center justify-center gap-3 p-8"
             >
                 <div
-                    v-for="i in 5"
+                    v-for="i in 8"
                     class="flex flex-row w-full items-center justify-between bg-slate-800 border-slate-400 rounded-lg p-4 animate-pulse"
                 >
                     <div class="h-16"></div>
