@@ -54,6 +54,10 @@ useHead({
     title: "Log In",
 });
 const config = useRuntimeConfig();
+const cookieJar = useCookie("gs_cookie_jar", { maxAge: 60 * 60 * 24 });
+if (cookieJar.value) {
+    await navigateTo("/dashboard", { external: true });
+}
 
 import { ref } from "vue";
 
@@ -62,10 +66,6 @@ const password = ref("");
 const loading = ref(false);
 const errorMessage = ref("");
 const success = ref(false);
-const cookieJar = useCookie("gs_cookie_jar", { maxAge: 60 * 60 * 24 });
-if (cookieJar.value) {
-    await navigateTo("/dashboard", { external: true });
-}
 
 const login = async () => {
     loading.value = true;
