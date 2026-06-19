@@ -67,24 +67,43 @@
                 v-else
                 class="flex flex-col w-full h-full items-center justify-center gap-3 p-8"
             >
+                <div
+                    class="sticky top-0 flex flex-row w-full justify-start bg-slate-900 py-4"
+                >
+                    <div
+                        v-for="tab in filterTabs"
+                        class="py-2 px-4 rounded hover:cursor-pointer"
+                        :class="
+                            filterType === tab.id
+                                ? 'bg-slate-500 text-white'
+                                : 'text-slate-400'
+                        "
+                        @click="changeFilter(tab)"
+                    >
+                        {{ tab.label }}
+                    </div>
+                </div>
                 <template v-for="course in courses">
-                    <AssignmentCard
-                        v-if="course.visible"
-                        v-for="assignment in course.assignments"
-                        :title="assignment.title"
-                        :course="course.title"
-                        :submissionStatus="assignment.submission_status"
-                        :dueDate="
-                            assignment.due_date
-                                ? dayjs(assignment.due_date)
-                                : undefined
-                        "
-                        :lateDueDate="
-                            assignment.late_due_date
-                                ? dayjs(assignment.late_due_date)
-                                : undefined
-                        "
-                    />
+                    <template v-for="assignment in course.assignments">
+                        <AssignmentCard
+                            v-if="
+                                course.visible && assignmentFilter(assignment)
+                            "
+                            :title="assignment.title"
+                            :course="course.title"
+                            :submissionStatus="assignment.submission_status"
+                            :dueDate="
+                                assignment.due_date
+                                    ? dayjs(assignment.due_date)
+                                    : undefined
+                            "
+                            :lateDueDate="
+                                assignment.late_due_date
+                                    ? dayjs(assignment.late_due_date)
+                                    : undefined
+                            "
+                        />
+                    </template>
                 </template>
             </div>
         </div>
@@ -101,10 +120,46 @@ if (!cookieJar.value) {
 }
 
 import dayjs from "dayjs";
-import { ref } from "vue";
+import { ref, shallowRef } from "vue";
 
 const courses = ref([]);
 const loading = ref(true);
+
+const nextSevenDaysFilter = (assignment) =>
+    assignment.due_date
+        ? dayjs().isBefore(dayjs(assignment.due_date)) &&
+          dayjs(assignment.due_date).isBefore(dayjs().add(1, "week"))
+        : false;
+const lateFilter = (assignment) =>
+    assignment.due_date && assignment.late_due_date
+        ? dayjs(assignment.due_date).isBefore(dayjs()) &&
+          dayjs().isBefore(dayjs(assignment.late_due_date))
+        : false;
+const pastDueFilter = (assignment) =>
+    assignment.due_date
+        ? assignment.late_due_date
+            ? dayjs(assignment.late_due_date).isBefore(dayjs())
+            : dayjs(assignment.due_date).isBefore(dayjs())
+        : false;
+
+const assignmentFilter = shallowRef(() => true);
+const filterType = ref("all");
+
+const filterTabs = [
+    { id: "all", label: "All assignments", filterFn: () => true },
+    {
+        id: "nextSeven",
+        label: "Next seven days",
+        filterFn: nextSevenDaysFilter,
+    },
+    { id: "late", label: "Late", filterFn: lateFilter },
+    { id: "pastDue", label: "Past due", filterFn: pastDueFilter },
+];
+
+const changeFilter = (tab) => {
+    filterType.value = tab.id;
+    assignmentFilter.value = tab.filterFn;
+};
 
 onMounted(async () => {
     try {
