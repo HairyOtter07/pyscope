@@ -83,27 +83,31 @@
                         {{ tab.label }}
                     </div>
                 </div>
-                <template v-for="course in courses">
-                    <template v-for="assignment in course.assignments">
-                        <AssignmentCard
-                            v-if="
-                                course.visible && assignmentFilter(assignment)
-                            "
-                            :title="assignment.title"
-                            :course="course.title"
-                            :submissionStatus="assignment.submission_status"
-                            :dueDate="
-                                assignment.due_date
-                                    ? dayjs(assignment.due_date)
-                                    : undefined
-                            "
-                            :lateDueDate="
-                                assignment.late_due_date
-                                    ? dayjs(assignment.late_due_date)
-                                    : undefined
-                            "
-                        />
-                    </template>
+                <template v-for="assignment in sortedAssignments">
+                    <AssignmentCard
+                        v-if="
+                            courses.find(
+                                (course) => course.id === assignment.course_id,
+                            ).visible && assignmentFilter(assignment)
+                        "
+                        :title="assignment.title"
+                        :course="
+                            courses.find(
+                                (course) => course.id === assignment.course_id,
+                            ).title
+                        "
+                        :submissionStatus="assignment.submission_status"
+                        :dueDate="
+                            assignment.due_date
+                                ? dayjs(assignment.due_date)
+                                : undefined
+                        "
+                        :lateDueDate="
+                            assignment.late_due_date
+                                ? dayjs(assignment.late_due_date)
+                                : undefined
+                        "
+                    />
                 </template>
             </div>
         </div>
@@ -123,6 +127,34 @@ import dayjs from "dayjs";
 import { ref, shallowRef } from "vue";
 
 const courses = ref([]);
+const assignments = ref([]);
+const sortedAssignments = computed(() => {
+    return assignments.value.toSorted((a, b) => {
+        if (!a.due_date && !b.due_date) return 0;
+
+        if (a.due_date && !b.due_date) return -1;
+        if (!a.due_date && b.due_date) return 1;
+
+        const aDue = dayjs(a.due_date);
+        const bDue = dayjs(b.due_date);
+
+        if (aDue.isBefore(bDue)) return -1;
+        if (aDue.isAfter(bDue)) return 1;
+
+        if (!a.late_due_date && !b.late_due_date) return 0;
+
+        if (a.late_due_date && !b.late_due_date) return 1;
+        if (!a.late_due_date && b.late_due_date) return -1;
+
+        const aLate = dayjs(a.late_due_date);
+        const bLate = dayjs(b.late_due_date);
+
+        if (aLate.isBefore(bLate)) return -1;
+        if (aLate.isAfter(bLate)) return 1;
+
+        return 0;
+    });
+});
 const loading = ref(true);
 
 const nextSevenDaysFilter = (assignment) =>
@@ -191,6 +223,7 @@ onMounted(async () => {
             const course = courseResponse.course;
             course.visible = true;
             courses.value.push(course);
+            assignments.value = assignments.value.concat(course.assignments);
         }
         loading.value = false;
     } catch (err) {

@@ -27,12 +27,13 @@ app.add_middleware(
 
 class Assignment(BaseModel):
     title: str
+    course_id: str
     submission_status: str
     due_date: datetime | None
     late_due_date: datetime | None
 
     @classmethod
-    def from_tag(cls, tag: Tag):
+    def from_tag(cls, tag: Tag, course_id: str):
         title = ""
         if th := tag.find("th"):
             title = th.text
@@ -73,6 +74,7 @@ class Assignment(BaseModel):
 
         return cls(
             title=title,
+            course_id=course_id,
             submission_status=submission_status,
             due_date=due_date,
             late_due_date=late_due_date,
@@ -111,7 +113,7 @@ class Course(BaseModel):
         if assignments_table := page.find("table", id="assignments-student-table"):
             if table_body := assignments_table.find("tbody"):
                 for tag in table_body.find_all("tr"):
-                    assignments.append(Assignment.from_tag(tag))
+                    assignments.append(Assignment.from_tag(tag, id))
 
         return cls(
             id=id,
