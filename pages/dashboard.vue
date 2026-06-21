@@ -163,7 +163,7 @@ const changeFilter = (tab) => {
 
 onMounted(async () => {
     try {
-        const courseIds = await $fetch(
+        const courseIdsResponse = await $fetch(
             `${config.public.apiBaseUrl}/api/courses`,
             {
                 method: "GET",
@@ -172,8 +172,11 @@ onMounted(async () => {
                 },
             },
         );
-        for (const courseId of courseIds) {
-            const course = await $fetch(
+        if (courseIdsResponse.cooke_jar) {
+            cookieJar.value = courseIdsResponse.cooke_jar;
+        }
+        for (const courseId of courseIdsResponse.course_ids) {
+            const courseResponse = await $fetch(
                 `${config.public.apiBaseUrl}/api/courses/${courseId}`,
                 {
                     method: "GET",
@@ -182,6 +185,10 @@ onMounted(async () => {
                     },
                 },
             );
+            if (courseResponse.cooke_jar) {
+                cookieJar.value = courseResponse.cooke_jar;
+            }
+            const course = courseResponse.course;
             course.visible = true;
             courses.value.push(course);
         }

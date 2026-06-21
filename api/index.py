@@ -206,7 +206,7 @@ def get_course_ids(gs_cookie_jar: Annotated[str, Header()]):
             for link_tag in course_list.find_all("a")
         ]
 
-    return course_ids
+    return {"cookie_jar": s.encode_cookie_jar(), "course_ids": course_ids}
 
 
 @app.get("/api/courses/{course_id}")
@@ -217,4 +217,7 @@ def get_course(course_id: str, gs_cookie_jar: Annotated[str, Header()]):
 
     r = s.session.get(s.get_gs_endpoint(f"/courses/{course_id}"))
     course_page = BeautifulSoup(r.content, features="html.parser")
-    return Course.from_page(course_page)
+    return {
+        "cookie_jar": s.encode_cookie_jar(),
+        "course": Course.from_page(course_page),
+    }
