@@ -193,6 +193,20 @@ def login(credentials: Login):
     return {"cookie_jar": s.encode_cookie_jar()}
 
 
+@app.get("/api/name")
+def get_name(gs_cookie_jar: Annotated[str, Header()]):
+    s = SessionManager.from_cookies(gs_cookie_jar)
+    if s is None:
+        raise HTTPException(status_code=401, detail="Session invalid")
+
+    r = s.session.get(s.get_gs_endpoint("/account"))
+    dashboard = BeautifulSoup(r.content, features="html.parser")
+    name = ""
+    if name_tag := dashboard.find("div", class_="sidebar-hello-name"):
+        name = name_tag.text
+    return {"cookie_jar": s.encode_cookie_jar(), "name": name}
+
+
 @app.get("/api/courses")
 def get_course_ids(gs_cookie_jar: Annotated[str, Header()]):
     s = SessionManager.from_cookies(gs_cookie_jar)

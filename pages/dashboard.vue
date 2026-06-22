@@ -16,7 +16,7 @@
                     class="peer hover:underline hover:cursor-pointer"
                     @click="logOut"
                 >
-                    FIRSTNAME LASTNAME
+                    {{ userName }}
                 </p>
                 <p class="invisible peer-hover:visible text-slate-400">
                     (Log Out)
@@ -222,6 +222,19 @@ const logOut = async () => {
 
 onMounted(async () => {
     try {
+        const nameResponse = await $fetch(
+            `${config.public.apiBaseUrl}/api/name`,
+            {
+                method: "GET",
+                headers: {
+                    "GS-Cookie-Jar": cookieJar.value,
+                },
+            },
+        );
+        if (nameResponse.cookie_jar) {
+            cookieJar.value = nameResponse.cookie_jar;
+        }
+        userName.value = nameResponse.name;
         const courseIdsResponse = await $fetch(
             `${config.public.apiBaseUrl}/api/courses`,
             {
