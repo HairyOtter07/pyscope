@@ -3,6 +3,30 @@
         class="flex flex-col w-full h-full min-h-screen bg-slate-900 text-white items-center justify-center"
     >
         <div
+            class="flex flex-row w-full items-center justify-between bg-slate-800/50 py-4 px-6 border-b-slate-400 border-b"
+        >
+            <p>BetterScope</p>
+            <button
+                popovertarget="sign-out-popover"
+                style="anchor-name: --sign-out-btn"
+            >
+                Student Name
+            </button>
+            <div
+                id="sign-out-popover"
+                class="bg-slate-800 text-white px-4 py-2 mt-4"
+                style="
+                    position-anchor: --sign-out-btn;
+                    inset: auto;
+                    top: anchor(bottom);
+                    right: anchor(right);
+                "
+                popover
+            >
+                Log Out
+            </div>
+        </div>
+        <div
             class="flex flex-row w-full max-w-6xl h-full items-start justify-center gap-4"
         >
             <div
