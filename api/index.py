@@ -14,7 +14,7 @@ GS_DATETIME_FSTRING = "%Y-%m-%d %H:%M:%S %z"
 
 app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
 
-origins = ["http://localhost:3000"]
+origins = ["http://localhost:3000", "https://betterscope-frontend.vercel.app"]
 
 app.add_middleware(
     CORSMiddleware,
