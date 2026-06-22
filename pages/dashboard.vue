@@ -7,7 +7,12 @@
         >
             <p>BetterScope</p>
             <div class="flex flex-row-reverse gap-2">
+                <div
+                    v-if="loading"
+                    class="bg-slate-700 w-52 rounded-lg animate-pulse"
+                ></div>
                 <p
+                    v-else
                     class="peer hover:underline hover:cursor-pointer"
                     @click="logOut"
                 >
@@ -142,6 +147,7 @@ if (!cookieJar.value) {
 import dayjs from "dayjs";
 import { ref, shallowRef } from "vue";
 
+const userName = ref("");
 const courses = ref([]);
 const assignments = ref([]);
 const sortedAssignments = computed(() => {
@@ -225,8 +231,8 @@ onMounted(async () => {
                 },
             },
         );
-        if (courseIdsResponse.cooke_jar) {
-            cookieJar.value = courseIdsResponse.cooke_jar;
+        if (courseIdsResponse.cookie_jar) {
+            cookieJar.value = courseIdsResponse.cookie_jar;
         }
         for (const courseId of courseIdsResponse.course_ids) {
             const courseResponse = await $fetch(
@@ -238,8 +244,8 @@ onMounted(async () => {
                     },
                 },
             );
-            if (courseResponse.cooke_jar) {
-                cookieJar.value = courseResponse.cooke_jar;
+            if (courseResponse.cookie_jar) {
+                cookieJar.value = courseResponse.cookie_jar;
             }
             const course = courseResponse.course;
             course.visible = true;
