@@ -2,6 +2,7 @@ import base64
 import json
 import re
 from datetime import datetime
+from enum import Enum
 from typing import Annotated
 
 import requests
@@ -25,10 +26,32 @@ app.add_middleware(
 )
 
 
+class SubmissionType(str, Enum):
+    NO_SUBMISSION = "NO_SUBMISSION"
+    SUBMITTED = "SUBMITTED"
+    UNGRADED = "UNGRADED"
+    GRADED = "GRADED"
+
+
+class SubmissionStatus(BaseModel):
+    type: SubmissionType
+    score: float | None
+    max_score: float | None
+
+    @classmethod
+    def from_type(
+        cls,
+        type: SubmissionType,
+        score: float | None = None,
+        max_score: float | None = None,
+    ):
+        return SubmissionStatus(type=type, score=score, max_score=max_score)
+
+
 class Assignment(BaseModel):
     title: str
     course_id: str
-    submission_status: str
+    submission_status: SubmissionStatus | None
     due_date: datetime | None
     late_due_date: datetime | None
 
@@ -38,24 +61,25 @@ class Assignment(BaseModel):
         if th := tag.find("th"):
             title = th.text
 
-        submission_status = ""
+        submission_status = None
         if submission_status_tag := tag.find("td", class_="submissionStatus"):
             status_classes = submission_status_tag["class"]
-            if (
-                "submissionStatus-warning" in status_classes
-                or "submissionStatus-neutral" in status_classes
-                or "submissionStatus-complete" in status_classes
-            ):
-                if status_text := submission_status_tag.find(
-                    "div", class_="submissionStatus--text"
-                ):
-                    submission_status = status_text.text
+            if "submissionStatus-warning" in status_classes:
+                submission_status = SubmissionStatus.from_type(
+                    SubmissionType.NO_SUBMISSION
+                )
+            elif "submissionStatus-complete" in status_classes:
+                submission_status = SubmissionStatus.from_type(SubmissionType.SUBMITTED)
+            elif "submissionStatus-neutral" in status_classes:
+                submission_status = SubmissionStatus.from_type(SubmissionType.UNGRADED)
             else:
-                submission_status = "Graded: "
+                submission_status = SubmissionStatus.from_type(SubmissionType.GRADED)
                 if score_text := submission_status_tag.find(
                     "div", class_="submissionStatus--score"
                 ):
-                    submission_status += score_text.text
+                    score_split = score_text.text.split("/")
+                    submission_status.score = float(score_split[0])
+                    submission_status.max_score = float(score_split[1])
 
         due_date = None
         late_due_date = None

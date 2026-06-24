@@ -27,33 +27,70 @@
             class="flex flex-row w-full max-w-6xl h-full items-start justify-center gap-4"
         >
             <div
-                class="sticky top-0 flex flex-col h-screen items-start justify-center p-8 gap-1"
+                class="sticky top-0 flex flex-col h-screen items-start justify-center p-8 gap-2"
             >
-                <h2 class="whitespace-nowrap text-xl">Filter by Courses</h2>
-                <div v-if="loading">
-                    <div
-                        v-for="i in 4"
-                        class="flex flex-row gap-2 items-center p-0.5"
-                    >
-                        <input
-                            type="checkbox"
-                            class="size-5 appearance-none bg-slate-500 rounded"
-                        />
+                <h2 class="whitespace-nowrap text-xl">Filters</h2>
+                <div class="flex flex-col items-start justify-center">
+                    <h2 class="whitespace-nowrap text-lg">By Course:</h2>
+                    <div v-if="loading">
                         <div
-                            class="h-6 w-52 bg-slate-800 animate-pulse rounded-md"
-                        ></div>
+                            v-for="i in 4"
+                            class="flex flex-row gap-2 items-center p-0.5"
+                        >
+                            <input
+                                type="checkbox"
+                                class="size-5 appearance-none bg-slate-500 rounded"
+                            />
+                            <div
+                                class="h-6 w-52 bg-slate-800 animate-pulse rounded-md"
+                            ></div>
+                        </div>
+                    </div>
+                    <div
+                        v-else
+                        class="flex flex-col items-start justify-center"
+                    >
+                        <div
+                            v-for="course in courses"
+                            class="flex flex-row gap-2 items-center p-0.5"
+                        >
+                            <div class="relative size-5">
+                                <input
+                                    type="checkbox"
+                                    class="peer size-5 appearance-none bg-slate-300 checked:bg-slate-500 hover:cursor-pointer rounded"
+                                    v-model="course.visible"
+                                />
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    class="invisible absolute inset-0 pointer-events-none peer-checked:visible"
+                                >
+                                    <path d="M0 0h24v24H0z" fill="none" />
+                                    <path
+                                        fill="currentColor"
+                                        d="m9.55 15.15l8.475-8.475q.3-.3.7-.3t.7.3t.3.713t-.3.712l-9.175 9.2q-.3.3-.7.3t-.7-.3L4.55 13q-.3-.3-.288-.712t.313-.713t.713-.3t.712.3z"
+                                    />
+                                </svg>
+                            </div>
+                            <p class="whitespace-nowrap">{{ course.title }}</p>
+                        </div>
                     </div>
                 </div>
-                <div v-else class="flex flex-col items-start justify-center">
+                <div class="flex flex-col items-start justify-center">
+                    <h2 class="whitespace-nowrap text-lg">
+                        By Submission Status:
+                    </h2>
                     <div
-                        v-for="course in courses"
                         class="flex flex-row gap-2 items-center p-0.5"
+                        v-for="type in submissionTypes"
                     >
                         <div class="relative size-5">
                             <input
                                 type="checkbox"
                                 class="peer size-5 appearance-none bg-slate-300 checked:bg-slate-500 hover:cursor-pointer rounded"
-                                v-model="course.visible"
+                                v-model="type.visible"
                             />
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -69,7 +106,7 @@
                                 />
                             </svg>
                         </div>
-                        <p class="whitespace-nowrap">{{ course.title }}</p>
+                        <p class="whitespace-nowrap">{{ type.display }}</p>
                     </div>
                 </div>
             </div>
@@ -109,7 +146,13 @@
                         v-if="
                             courses.find(
                                 (course) => course.id === assignment.course_id,
-                            ).visible && assignmentFilter(assignment)
+                            ).visible &&
+                            submissionTypes.find(
+                                (type) =>
+                                    type.id ===
+                                    assignment.submission_status.type,
+                            ).visible &&
+                            assignmentFilter(assignment)
                         "
                         :title="assignment.title"
                         :course="
@@ -117,7 +160,9 @@
                                 (course) => course.id === assignment.course_id,
                             ).title
                         "
-                        :submissionStatus="assignment.submission_status"
+                        :submissionStatus="
+                            formatSubmissionStatus(assignment.submission_status)
+                        "
                         :dueDate="
                             assignment.due_date
                                 ? dayjs(assignment.due_date)
@@ -213,6 +258,38 @@ const filterTabs = [
 const changeFilter = (tab) => {
     filterType.value = tab.id;
     assignmentFilter.value = tab.filterFn;
+};
+
+const submissionTypes = ref([
+    {
+        id: "NO_SUBMISSION",
+        display: "No Submission",
+        visible: true,
+    },
+    {
+        id: "SUBMITTED",
+        display: "Submitted",
+        visible: true,
+    },
+    {
+        id: "UNGRADED",
+        display: "Ungraded",
+        visible: true,
+    },
+    {
+        id: "GRADED",
+        display: "Graded",
+        visible: true,
+    },
+]);
+
+const formatSubmissionStatus = (status) => {
+    let displayString = submissionTypes.value.find(
+        (type) => type.id === status.type,
+    ).display;
+    if (status.type === "GRADED")
+        displayString += `: ${status.score} / ${status.max_score}`;
+    return displayString;
 };
 
 const logOut = async () => {
