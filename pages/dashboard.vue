@@ -2,27 +2,12 @@
     <div
         class="flex flex-col w-full h-full min-h-screen bg-slate-900 text-white items-center justify-center"
     >
-        <div
-            class="flex flex-row w-full items-center justify-between bg-slate-800/50 py-4 px-6 border-b-slate-400 border-b"
-        >
-            <img src="~/assets/images/name_logo.png" class="h-7" />
-            <div class="flex flex-row-reverse gap-2">
-                <div
-                    v-if="loading"
-                    class="bg-slate-700 w-52 rounded-lg animate-pulse"
-                ></div>
-                <p
-                    v-else
-                    class="peer hover:underline hover:cursor-pointer"
-                    @click="logOut"
-                >
-                    {{ userName }}
-                </p>
-                <p class="invisible peer-hover:visible text-slate-400">
-                    (Log Out)
-                </p>
-            </div>
-        </div>
+        <NavBar
+            dashboard
+            :loading="loading"
+            :userName="userName"
+            @log-out="logOut"
+        />
         <div
             class="flex flex-row w-full max-w-6xl h-full items-start justify-center gap-4"
         >

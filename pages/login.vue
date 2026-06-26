@@ -2,11 +2,7 @@
     <div
         class="flex flex-col w-full h-full min-h-screen bg-slate-900 text-white items-center"
     >
-        <div
-            class="flex flex-row w-full items-center justify-start bg-slate-800/50 py-4 px-6 border-b-slate-400 border-b"
-        >
-            <img src="~/assets/images/name_logo.png" class="h-7" />
-        </div>
+        <NavBar />
         <div
             class="flex flex-col m-4 p-4 bg-slate-800 items-center justify-center border-white border rounded-md gap-2"
         >
