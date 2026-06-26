@@ -5,7 +5,7 @@
         <div
             class="flex flex-row w-full items-center justify-between bg-slate-800/50 py-4 px-6 border-b-slate-400 border-b"
         >
-            <p>BetterScope</p>
+            <img src="~/assets/images/name_logo.png" class="h-7" />
             <div class="flex flex-row-reverse gap-2">
                 <div
                     v-if="loading"
