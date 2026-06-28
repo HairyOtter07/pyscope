@@ -199,8 +199,11 @@ class SessionManager:
     @classmethod
     def from_cookies(cls, cookie_jar: str):
         session = requests.Session()
+        try:
+            cookie_dict = json.loads(base64.b64decode(cookie_jar).decode())
+        except Exception:
+            raise Exception()
 
-        cookie_dict = json.loads(base64.b64decode(cookie_jar).decode())
         session.cookies.update(cookie_dict)
         return (
             cls(session=session)
@@ -219,7 +222,11 @@ def login(credentials: Login):
 
 @app.get("/api/name")
 def get_name(gs_cookie_jar: Annotated[str, Header()]):
-    s = SessionManager.from_cookies(gs_cookie_jar)
+    try:
+        s = SessionManager.from_cookies(gs_cookie_jar)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Malformed auth header")
+
     if s is None:
         raise HTTPException(status_code=401, detail="Session invalid")
 
@@ -233,7 +240,11 @@ def get_name(gs_cookie_jar: Annotated[str, Header()]):
 
 @app.get("/api/courses")
 def get_course_ids(gs_cookie_jar: Annotated[str, Header()]):
-    s = SessionManager.from_cookies(gs_cookie_jar)
+    try:
+        s = SessionManager.from_cookies(gs_cookie_jar)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Malformed auth header")
+
     if s is None:
         raise HTTPException(status_code=401, detail="Session invalid")
 
@@ -251,7 +262,11 @@ def get_course_ids(gs_cookie_jar: Annotated[str, Header()]):
 
 @app.get("/api/courses/{course_id}")
 def get_course(course_id: str, gs_cookie_jar: Annotated[str, Header()]):
-    s = SessionManager.from_cookies(gs_cookie_jar)
+    try:
+        s = SessionManager.from_cookies(gs_cookie_jar)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Malformed auth header")
+
     if s is None:
         raise HTTPException(status_code=401, detail="Session invalid")
 
