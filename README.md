@@ -12,7 +12,7 @@ Currently very early in development, so don't expect much.
 - [x] get assignment metadata
   - [x] title
   - [x] submission status
-    - [ ] handle graded scores better
+    - [x] handle graded scores better
   - [x] dates
     - [ ] release date
     - [x] due date
@@ -20,9 +20,9 @@ Currently very early in development, so don't expect much.
   - [ ] template pdf
   - [ ] existing submission link
   - [ ] submission lateness
-- [ ] get student name (account info)
+- [x] get student name (account info)
 - [ ] direct submission button
 - [ ] get past terms courses
-- [ ] UI!
+- [x] UI!
   - [x] backend API
-  - [ ] actual frontend
+  - [x] actual frontend
