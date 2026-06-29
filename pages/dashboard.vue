@@ -148,6 +148,9 @@
                         :submissionStatus="
                             formatSubmissionStatus(assignment.submission_status)
                         "
+                        :complete="
+                            assignment.submission_status.type != 'NO_SUBMISSION'
+                        "
                         :dueDate="
                             assignment.due_date
                                 ? dayjs(assignment.due_date)
@@ -169,7 +172,7 @@ useHead({
     title: "Dashboard",
 });
 const config = useRuntimeConfig();
-const cookieJar = useCookie("gs_cookie_jar", { maxAge: 60 * 60 * 24 });
+const cookieJar = useCookie("gs_cookie_jar", { maxAge: 60 * 60 * 24 * 100 });
 if (!cookieJar.value) {
     await navigateTo("/login", { external: true });
 }

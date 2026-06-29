@@ -55,7 +55,7 @@ useHead({
     title: "Log In",
 });
 const config = useRuntimeConfig();
-const cookieJar = useCookie("gs_cookie_jar", { maxAge: 60 * 60 * 24 });
+const cookieJar = useCookie("gs_cookie_jar", { maxAge: 60 * 60 * 24 * 100 });
 if (cookieJar.value) {
     await navigateTo("/dashboard", { external: true });
 }
