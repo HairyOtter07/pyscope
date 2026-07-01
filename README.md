@@ -22,7 +22,7 @@ Currently very early in development, so don't expect much.
   - [ ] submission lateness
 - [x] get student name (account info)
 - [ ] direct submission button
-- [ ] get past terms courses
+- [x] get past terms courses
 - [x] UI!
   - [x] backend API
   - [x] actual frontend

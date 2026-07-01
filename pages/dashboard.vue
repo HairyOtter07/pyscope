@@ -111,20 +111,26 @@
                 class="flex flex-col w-full h-full items-center justify-center gap-3 p-8"
             >
                 <div
-                    class="sticky top-0 flex flex-row w-full justify-start bg-slate-900 py-4"
+                    class="sticky top-0 flex flex-row w-full items-center justify-between bg-slate-900 py-4"
                 >
-                    <div
-                        v-for="tab in filterTabs"
-                        class="py-1 px-4 rounded hover:cursor-pointer"
-                        :class="
-                            filterType === tab.id
-                                ? 'bg-slate-500 text-white'
-                                : 'text-slate-400'
-                        "
-                        @click="changeFilter(tab)"
-                    >
-                        {{ tab.label }}
+                    <div class="flex flex-row items-center">
+                        <div
+                            v-for="tab in filterTabs"
+                            class="py-1 px-4 rounded hover:cursor-pointer"
+                            :class="
+                                filterType === tab.id
+                                    ? 'bg-slate-500 text-white'
+                                    : 'text-slate-400'
+                            "
+                            @click="changeFilter(tab)"
+                        >
+                            {{ tab.label }}
+                        </div>
                     </div>
+                    <Dropdown
+                        :options="courseIds.map((el) => el.term)"
+                        v-model="selectedTerm"
+                    />
                 </div>
                 <template v-for="assignment in sortedAssignments">
                     <AssignmentCard
@@ -181,6 +187,8 @@ import dayjs from "dayjs";
 import { ref, shallowRef } from "vue";
 
 const userName = ref("");
+const selectedTerm = ref("");
+const courseIds = ref([]);
 const courses = ref([]);
 const assignments = ref([]);
 const sortedAssignments = computed(() => {
@@ -285,6 +293,47 @@ const logOut = async () => {
     await navigateTo("/login", { external: true });
 };
 
+watch(selectedTerm, async (newTerm) => {
+    const controller = new AbortController();
+    try {
+        loading.value = true;
+        const newCourses = [];
+        let newAssignments = [];
+        const termIds = courseIds.value.find(
+            (el) => el.term === newTerm,
+        ).courses;
+
+        for (const courseId of termIds) {
+            const courseResponse = await $fetch(
+                `${config.public.apiBaseUrl}/api/courses/${courseId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "GS-Cookie-Jar": cookieJar.value,
+                    },
+                    signal: controller.signal,
+                },
+            );
+            if (courseResponse.cookie_jar) {
+                cookieJar.value = courseResponse.cookie_jar;
+            }
+            const course = courseResponse.course;
+            course.visible = true;
+            newCourses.push(course);
+            newAssignments = newAssignments.concat(course.assignments);
+        }
+        courses.value = newCourses;
+        assignments.value = newAssignments;
+        loading.value = false;
+    } catch (err) {
+        console.log(err);
+    }
+
+    onWatcherCleanup(() => {
+        controller.abort();
+    });
+});
+
 onMounted(async () => {
     try {
         const nameResponse = await $fetch(
@@ -312,25 +361,8 @@ onMounted(async () => {
         if (courseIdsResponse.cookie_jar) {
             cookieJar.value = courseIdsResponse.cookie_jar;
         }
-        for (const courseId of courseIdsResponse.course_ids) {
-            const courseResponse = await $fetch(
-                `${config.public.apiBaseUrl}/api/courses/${courseId}`,
-                {
-                    method: "GET",
-                    headers: {
-                        "GS-Cookie-Jar": cookieJar.value,
-                    },
-                },
-            );
-            if (courseResponse.cookie_jar) {
-                cookieJar.value = courseResponse.cookie_jar;
-            }
-            const course = courseResponse.course;
-            course.visible = true;
-            courses.value.push(course);
-            assignments.value = assignments.value.concat(course.assignments);
-        }
-        loading.value = false;
+        courseIds.value = courseIdsResponse.course_ids;
+        selectedTerm.value = courseIds.value[0].term;
     } catch (err) {
         console.log(err);
     }

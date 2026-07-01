@@ -15,8 +15,8 @@ GS_DATETIME_FSTRING = "%Y-%m-%d %H:%M:%S %z"
 
 app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
 
-# origins = ["http://localhost:3000"]
-origins = ["https://betterscope.hairyotter07.dev"]
+origins = ["http://localhost:3000"]
+# origins = ["https://betterscope.hairyotter07.dev"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -251,13 +251,17 @@ def get_course_ids(gs_cookie_jar: Annotated[str, Header()]):
 
     r = s.session.get(s.get_gs_endpoint("/account"))
     dashboard = BeautifulSoup(r.content, features="html.parser")
+    terms = dashboard.find_all("div", class_="courseList--term")
+    course_lists = dashboard.find_all("div", class_="courseList--coursesForTerm")
     course_ids = []
-    if course_list := dashboard.find("div", class_="courseList--coursesForTerm"):
-        course_ids = [
+    for i in range(len(terms)):
+        ids = [
             str(link_tag["href"]).split("/")[-1]
-            for link_tag in course_list.find_all("a")
+            for link_tag in course_lists[i].find_all("a")
         ]
+        course_ids.append({"term": terms[i].text, "courses": ids})
 
+    print(course_ids)
     return {"cookie_jar": s.encode_cookie_jar(), "course_ids": course_ids}
 
 
