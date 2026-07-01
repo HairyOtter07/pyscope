@@ -15,8 +15,8 @@ GS_DATETIME_FSTRING = "%Y-%m-%d %H:%M:%S %z"
 
 app = FastAPI(docs_url="/api/docs", openapi_url="/api/openapi.json")
 
-origins = ["http://localhost:3000"]
-# origins = ["https://betterscope.hairyotter07.dev"]
+# origins = ["http://localhost:3000"]
+origins = ["https://betterscope.hairyotter07.dev"]
 
 app.add_middleware(
     CORSMiddleware,
